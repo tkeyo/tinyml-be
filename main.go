@@ -12,27 +12,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func getParsedRMSData(records [][]string) ([]int, []float64, []float64, []float64) {
-	var time []int
-	var acc_x []float64
-	var acc_y []float64
-	var acc_z []float64
-
-	for _, record := range records {
-
-		timeVal, _ := strconv.Atoi(record[0])
-		acc_xVal, _ := strconv.ParseFloat(record[1], 4)
-		acc_yVal, _ := strconv.ParseFloat(record[2], 4)
-		acc_zVal, _ := strconv.ParseFloat(record[3], 4)
-
-		time = append(time, timeVal)
-		acc_x = append(acc_x, acc_xVal)
-		acc_y = append(acc_y, acc_yVal)
-		acc_z = append(acc_z, acc_zVal)
-	}
-	return time, acc_x, acc_y, acc_z
-}
-
 func getRMSData(c *gin.Context) {
 	csvFile, err := os.Open("data/dataRMS.csv")
 	if err != nil {
@@ -48,7 +27,7 @@ func getRMSData(c *gin.Context) {
 
 	records := csvData[len(csvData)-10:]
 
-	time, acc_x, acc_y, acc_z := getParsedRMSData(records)
+	time, acc_x, acc_y, acc_z := RMSUtil.GetParsedRMSData(records)
 
 	c.JSON(200, gin.H{
 		"time":      time,
@@ -56,14 +35,6 @@ func getRMSData(c *gin.Context) {
 		"acc_y_rms": acc_y,
 		"acc_z_rms": acc_z,
 	})
-}
-
-func getMoveCounts(arr []int) map[int]int {
-	dict := make(map[int]int)
-	for _, num := range arr {
-		dict[num] = dict[num] + 1
-	}
-	return dict
 }
 
 func getMoveData(c *gin.Context) {
@@ -96,9 +67,9 @@ func getMoveData(c *gin.Context) {
 		}
 	}
 
-	countsDay1 := getMoveCounts(day1)
-	countsDay2 := getMoveCounts(day2)
-	countsDay3 := getMoveCounts(day3)
+	countsDay1 := MoveUtil.GetMoveCounts(day1)
+	countsDay2 := MoveUtil.GetMoveCounts(day2)
+	countsDay3 := MoveUtil.GetMoveCounts(day3)
 
 	c.JSON(200, gin.H{
 		"day_1": countsDay1,
