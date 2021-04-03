@@ -6,33 +6,11 @@ import (
 	"os"
 	"strconv"
 
-	RMSUtil "github.com/tkeyo/tinyml-be/util"
+	MoveUtil "github.com/tkeyo/tinyml-be/move_util"
+	RMSUtil "github.com/tkeyo/tinyml-be/rms_util"
 
 	"github.com/gin-gonic/gin"
 )
-
-type dataMove struct {
-	Time int    `json:"time"`
-	Move string `json:"move"`
-}
-
-func saveMoveData(d dataMove) {
-	csvFile, err := os.OpenFile("data/dataMove.csv", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	defer csvFile.Close()
-
-	writer := csv.NewWriter(csvFile)
-	var row []string
-
-	row = append(row, strconv.Itoa(d.Time))
-	row = append(row, d.Move)
-
-	writer.Write(row)
-	writer.Flush()
-}
 
 func getParsedRMSData(records [][]string) ([]int, []float64, []float64, []float64) {
 	var time []int
@@ -145,12 +123,12 @@ func endpointRMS(c *gin.Context) {
 }
 
 func endpointMove(c *gin.Context) {
-	var move dataMove
+	var move MoveUtil.DataMove
 	c.BindJSON(&move)
 	c.JSON(200, gin.H{
 		"message": "OK",
 	})
-	saveMoveData(move)
+	MoveUtil.SaveMoveData(move)
 }
 
 func main() {
