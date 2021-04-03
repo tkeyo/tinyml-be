@@ -29,3 +29,11 @@ func SaveMoveData(d DataMove) {
 	writer.Write(row)
 	writer.Flush()
 }
+
+func GetMoveCounts(arr []int) map[int]int {
+	dict := make(map[int]int)
+	for _, num := range arr {
+		dict[num] = dict[num] + 1
+	}
+	return dict
+}

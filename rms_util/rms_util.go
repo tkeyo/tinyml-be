@@ -33,3 +33,24 @@ func SaveRMSData(d DataRMS) {
 	writer.Write(row)
 	writer.Flush()
 }
+
+func GetParsedRMSData(records [][]string) ([]int, []float64, []float64, []float64) {
+	var time []int
+	var acc_x []float64
+	var acc_y []float64
+	var acc_z []float64
+
+	for _, record := range records {
+
+		timeVal, _ := strconv.Atoi(record[0])
+		acc_xVal, _ := strconv.ParseFloat(record[1], 4)
+		acc_yVal, _ := strconv.ParseFloat(record[2], 4)
+		acc_zVal, _ := strconv.ParseFloat(record[3], 4)
+
+		time = append(time, timeVal)
+		acc_x = append(acc_x, acc_xVal)
+		acc_y = append(acc_y, acc_yVal)
+		acc_z = append(acc_z, acc_zVal)
+	}
+	return time, acc_x, acc_y, acc_z
+}
