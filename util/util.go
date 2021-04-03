@@ -1,4 +1,4 @@
-package rms_util
+package util_rms
 
 import (
 	"encoding/csv"

@@ -1,4 +1,4 @@
-module tinyml-be
+module github.com/tkeyo/tinyml-be
 
 go 1.16
 
