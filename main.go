@@ -109,8 +109,8 @@ func main() {
 	r.GET("/api/health", healthCheck)
 	r.GET("/api/get-rms", getRMSData)
 	r.GET("/api/get-move", getMoveData)
-	r.POST("/api/rms", endpointRMS)
-	r.POST("/api/move", endpointMove)
+	r.POST("/api/write-rms", endpointRMS)
+	r.POST("/api/write-move", endpointMove)
 	r.Run()
 
 }
