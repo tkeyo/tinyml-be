@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 
+	"github.com/gin-contrib/cors"
 	MoveUtil "github.com/tkeyo/tinyml-be/move_util"
 	RMSUtil "github.com/tkeyo/tinyml-be/rms_util"
 
@@ -106,11 +108,21 @@ func main() {
 	fmt.Println("Server is running....")
 
 	r := gin.Default()
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET", "POST"},
+		AllowHeaders:     []string{"Origin"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		AllowOriginFunc: func(origin string) bool {
+			return origin == "https://github.com"
+		},
+		MaxAge: 12 * time.Hour,
+	}))
 	r.GET("/api/health", healthCheck)
 	r.GET("/api/get-rms", getRMSData)
 	r.GET("/api/get-move", getMoveData)
 	r.POST("/api/write-rms", endpointRMS)
 	r.POST("/api/write-move", endpointMove)
-	r.Run()
-
+	r.Run(":8081")
 }
