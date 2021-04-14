@@ -1,83 +1,37 @@
 package main
 
 import (
-	"encoding/csv"
 	"fmt"
-	"os"
-	"strconv"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 	MoveUtil "github.com/tkeyo/tinyml-be/move_util"
 	RMSUtil "github.com/tkeyo/tinyml-be/rms_util"
-
-	"github.com/gin-gonic/gin"
 )
 
-func getRMSData(c *gin.Context) {
-	csvFile, err := os.Open("data/dataRMS.csv")
-	if err != nil {
-		panic(err)
-	}
-	defer csvFile.Close()
+// func getRMSData(c *gin.Context) {
+// }
 
-	csvReader := csv.NewReader(csvFile)
-	csvData, err := csvReader.ReadAll()
-	if err != nil {
-		panic(err)
-	}
+// func getMoveData(c *gin.Context) {
+// }
 
-	records := csvData[len(csvData)-10:]
+var dynamo *dynamodb.DynamoDB
 
-	time, acc_x, acc_y, acc_z := RMSUtil.GetParsedRMSData(records)
-
-	c.JSON(200, gin.H{
-		"time":      time,
-		"acc_x_rms": acc_x,
-		"acc_y_rms": acc_y,
-		"acc_z_rms": acc_z,
+func connectDynamoDB() (db *dynamodb.DynamoDB) {
+	sess, err := session.NewSession(&aws.Config{
+		Region:      aws.String("eu-central-1"),
+		Credentials: credentials.NewSharedCredentials(".aws/credentials", "default"),
 	})
-}
-
-func getMoveData(c *gin.Context) {
-	csvFile, err := os.Open("data/dataMove.csv")
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
-	defer csvFile.Close()
-
-	csvReader := csv.NewReader(csvFile)
-	csvData, err := csvReader.ReadAll()
-	if err != nil {
-		panic(err)
-	}
-
-	var day1 []int
-	var day2 []int
-	var day3 []int
-
-	for _, row := range csvData {
-		day := row[0]
-		move, _ := strconv.Atoi(row[1])
-
-		if day == "300" {
-			day1 = append(day1, move)
-		} else if day == "400" {
-			day2 = append(day2, move)
-		} else if day == "500" {
-			day3 = append(day3, move)
-		}
-	}
-
-	countsDay1 := MoveUtil.GetMoveCounts(day1)
-	countsDay2 := MoveUtil.GetMoveCounts(day2)
-	countsDay3 := MoveUtil.GetMoveCounts(day3)
-
-	c.JSON(200, gin.H{
-		"day_1": countsDay1,
-		"day_2": countsDay2,
-		"day_3": countsDay3,
-	})
+	svc := dynamodb.New(sess)
+	return svc
 }
 
 func healthCheck(c *gin.Context) {
@@ -87,25 +41,29 @@ func healthCheck(c *gin.Context) {
 }
 
 func endpointRMS(c *gin.Context) {
-	var rms RMSUtil.DataRMS
+	var rms RMSUtil.RMS
 	c.BindJSON(&rms)
+
+	RMSUtil.AddRMSDB(rms, dynamo)
 	c.JSON(200, gin.H{
 		"message": "OK",
 	})
-	RMSUtil.SaveRMSData(rms)
 }
 
 func endpointMove(c *gin.Context) {
-	var move MoveUtil.DataMove
+	var move MoveUtil.Move
 	c.BindJSON(&move)
+
+	MoveUtil.AddMoveDB(move, dynamo)
 	c.JSON(200, gin.H{
 		"message": "OK",
 	})
-	MoveUtil.SaveMoveData(move)
 }
 
 func main() {
 	fmt.Println("Server is running....")
+
+	dynamo = connectDynamoDB()
 
 	r := gin.Default()
 	r.Use(cors.New(cors.Config{
@@ -120,8 +78,8 @@ func main() {
 		MaxAge: 12 * time.Hour,
 	}))
 	r.GET("/api/health", healthCheck)
-	r.GET("/api/get-rms", getRMSData)
-	r.GET("/api/get-move", getMoveData)
+	// r.GET("/api/get-rms", getRMSData)
+	// r.GET("/api/get-move", getMoveData)
 	r.POST("/api/write-rms", endpointRMS)
 	r.POST("/api/write-move", endpointMove)
 	r.Run(":8081")
