@@ -26,7 +26,7 @@ type Move struct {
 
 type M map[string]interface{}
 
-func ScanMoveDB(minTime int, deviceId int, svc *dynamodb.DynamoDB) ([]M, []M, []M) {
+func ScanMoveDB(minTime int, deviceId int, svc *dynamodb.DynamoDB) ([]M, []M, []M, []int) {
 	filt := expression.Name("device_id").Equal(expression.Value(deviceId)).And(expression.Name("time").GreaterThan(expression.Value(minTime)))
 	proj := expression.NamesList(expression.Name("device_id"), expression.Name("time"), expression.Name("move"))
 
@@ -49,9 +49,10 @@ func ScanMoveDB(minTime int, deviceId int, svc *dynamodb.DynamoDB) ([]M, []M, []
 		log.Fatalf("Got error retrieving data: %s", err)
 	}
 
-	var XMovementSlice []M
-	var YMovementSlice []M
-	var CircleMovementSlice []M
+	var xMovementSlice []M
+	var yMovementSlice []M
+	var circleMovementSlice []M
+	var timestamps []int
 
 	for _, i := range result.Items {
 		move := Move{}
@@ -60,19 +61,21 @@ func ScanMoveDB(minTime int, deviceId int, svc *dynamodb.DynamoDB) ([]M, []M, []
 			log.Fatalf("Got error unmarshalling: %s", err)
 		}
 
+		timestamps = append(timestamps, move.Timestamp*1000)
+
 		switch move.Move {
 		case 1:
-			XMovementSlice = append(XMovementSlice, M{"x": move.Timestamp, "y": 1})
+			xMovementSlice = append(xMovementSlice, M{"x": move.Timestamp * 1000, "y": 1})
 		case 2:
-			YMovementSlice = append(YMovementSlice, M{"x": move.Timestamp, "y": 2})
+			yMovementSlice = append(yMovementSlice, M{"x": move.Timestamp * 1000, "y": 2})
 		case 3:
-			CircleMovementSlice = append(CircleMovementSlice, M{"x": move.Timestamp, "y": 3})
+			circleMovementSlice = append(circleMovementSlice, M{"x": move.Timestamp * 1000, "y": 3})
 		}
 	}
 	// fmt.Println(XMovementSlice)
 	// fmt.Println(YMovementSlice)
 	// fmt.Println(CircleMovementSlice)
-	return XMovementSlice, YMovementSlice, CircleMovementSlice
+	return xMovementSlice, yMovementSlice, circleMovementSlice, timestamps
 }
 
 func AddMoveDB(move Move, svc *dynamodb.DynamoDB) {

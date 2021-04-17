@@ -51,17 +51,17 @@ func getMoveData(c *gin.Context) {
 	minTimeSet := 1618225200 // 12.4.2021 13:00:00
 	deviceIdSet := 1
 
-	x, y, circle := DynamoUtil.ScanMoveDB(minTimeSet, deviceIdSet, dynamo)
-	c.JSON(200, gin.H{
-		"x":      x,
-		"y":      y,
-		"circle": circle,
-	})
-
 	// Return format
 	// Movement X - [{x: time, y: 1}, {x:time, y: 1}, ...]
 	// Movement Y - [{x: time, y: 2}, {x:time, y: 2}, ...]
 	// Movement Circle - [{x: time, y: 3}, {x:time, y: 3}, ...]
+	x, y, circle, timestamps := DynamoUtil.ScanMoveDB(minTimeSet, deviceIdSet, dynamo)
+	c.JSON(200, gin.H{
+		"move_x":     x,
+		"move_y":     y,
+		"circle":     circle,
+		"timestamps": timestamps,
+	})
 }
 
 func endpointMove(c *gin.Context) {
