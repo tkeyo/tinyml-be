@@ -10,14 +10,11 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	MoveUtil "github.com/tkeyo/tinyml-be/move_util"
-	RMSUtil "github.com/tkeyo/tinyml-be/rms_util"
+
+	DynamoUtil "github.com/tkeyo/tinyml-be/services"
 )
 
 // func getRMSData(c *gin.Context) {
-// }
-
-// func getMoveData(c *gin.Context) {
 // }
 
 var dynamo *dynamodb.DynamoDB
@@ -41,20 +38,24 @@ func healthCheck(c *gin.Context) {
 }
 
 func endpointRMS(c *gin.Context) {
-	var rms RMSUtil.RMS
+	var rms DynamoUtil.RMS
 	c.BindJSON(&rms)
 
-	RMSUtil.AddRMSDB(rms, dynamo)
+	DynamoUtil.AddRMSDB(rms, dynamo)
 	c.JSON(200, gin.H{
 		"message": "OK",
 	})
 }
 
+func getMoveData(c *gin.Context) {
+	DynamoUtil.ScanMoveDB(15, 1, dynamo)
+}
+
 func endpointMove(c *gin.Context) {
-	var move MoveUtil.Move
+	var move DynamoUtil.Move
 	c.BindJSON(&move)
 
-	MoveUtil.AddMoveDB(move, dynamo)
+	DynamoUtil.AddMoveDB(move, dynamo)
 	c.JSON(200, gin.H{
 		"message": "OK",
 	})
@@ -79,7 +80,7 @@ func main() {
 	}))
 	r.GET("/api/health", healthCheck)
 	// r.GET("/api/get-rms", getRMSData)
-	// r.GET("/api/get-move", getMoveData)
+	r.GET("/api/get-move", getMoveData)
 	r.POST("/api/write-rms", endpointRMS)
 	r.POST("/api/write-move", endpointMove)
 	r.Run(":8081")

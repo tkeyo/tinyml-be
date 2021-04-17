@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/aws/aws-sdk-go/service/dynamodb/expression"
 )
 
 type RMS struct {
@@ -21,6 +22,31 @@ type Move struct {
 	DeviceId int `json:"device_id"`
 	Time     int `json:"time"`
 	Move     int `json:"move"`
+}
+
+func ScanMoveDB(minTime int, deviceId int, svc *dynamodb.DynamoDB) {
+	filt := expression.Name("device_id").Equal(expression.Value(deviceId)).And(expression.Name("time").GreaterThan(expression.Value(minTime)))
+	proj := expression.NamesList(expression.Name("device_id"), expression.Name("time"), expression.Name("move"))
+
+	expr, err := expression.NewBuilder().WithFilter(filt).WithProjection(proj).Build()
+
+	if err != nil {
+		log.Fatalf("Got error building expression: %s", err)
+	}
+
+	params := &dynamodb.ScanInput{
+		ExpressionAttributeNames:  expr.Names(),
+		ExpressionAttributeValues: expr.Values(),
+		FilterExpression:          expr.Filter(),
+		ProjectionExpression:      expr.Projection(),
+		TableName:                 aws.String("tinyml-move"),
+	}
+
+	result, err := svc.Scan(params)
+	if err != nil {
+		log.Fatalf("Got error retrieving data: %s", err)
+	}
+	fmt.Println(result)
 }
 
 func AddMoveDB(move Move, svc *dynamodb.DynamoDB) {
