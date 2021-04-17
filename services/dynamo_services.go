@@ -11,11 +11,11 @@ import (
 )
 
 type RMS struct {
-	DeviceId int     `json:"device_id"`
-	Time     int     `json:"time"`
-	Acc_x    float64 `json:"acc_x_rms"`
-	Acc_y    float64 `json:"acc_y_rms"`
-	Acc_z    float64 `json:"acc_z_rms"`
+	DeviceId  int     `json:"device_id"`
+	Timestamp int     `json:"time"`
+	Acc_x     float64 `json:"acc_x_rms"`
+	Acc_y     float64 `json:"acc_y_rms"`
+	Acc_z     float64 `json:"acc_z_rms"`
 }
 
 type Move struct {
@@ -26,7 +26,7 @@ type Move struct {
 
 type M map[string]interface{}
 
-func ScanMoveDB(minTime int, deviceId int, svc *dynamodb.DynamoDB) ([]M, []M, []M, []int) {
+func ScanMoveDB(minTime int, deviceId int, svc *dynamodb.DynamoDB) ([]int, []M, []M, []M) {
 	filt := expression.Name("device_id").Equal(expression.Value(deviceId)).And(expression.Name("time").GreaterThan(expression.Value(minTime)))
 	proj := expression.NamesList(expression.Name("device_id"), expression.Name("time"), expression.Name("move"))
 
@@ -72,10 +72,51 @@ func ScanMoveDB(minTime int, deviceId int, svc *dynamodb.DynamoDB) ([]M, []M, []
 			circleMovementSlice = append(circleMovementSlice, M{"x": move.Timestamp * 1000, "y": 3})
 		}
 	}
-	// fmt.Println(XMovementSlice)
-	// fmt.Println(YMovementSlice)
-	// fmt.Println(CircleMovementSlice)
-	return xMovementSlice, yMovementSlice, circleMovementSlice, timestamps
+	return timestamps, xMovementSlice, yMovementSlice, circleMovementSlice
+}
+
+func ScanRMSDB(minTime int, deviceId int, svc *dynamodb.DynamoDB) ([]int, []float32, []float32, []float32) {
+	filt := expression.Name("device_id").Equal(expression.Value(deviceId)).And(expression.Name("time").GreaterThan(expression.Value(minTime)))
+	proj := expression.NamesList(expression.Name("device_id"), expression.Name("time"), expression.Name("acc_x_rms"), expression.Name("acc_y_rms"), expression.Name("acc_z_rms"))
+
+	expr, err := expression.NewBuilder().WithFilter(filt).WithProjection(proj).Build()
+
+	if err != nil {
+		log.Fatalf("Got error building expression: %s", err)
+	}
+
+	params := &dynamodb.ScanInput{
+		ExpressionAttributeNames:  expr.Names(),
+		ExpressionAttributeValues: expr.Values(),
+		FilterExpression:          expr.Filter(),
+		ProjectionExpression:      expr.Projection(),
+		TableName:                 aws.String("tinyml-rms"),
+	}
+
+	result, err := svc.Scan(params)
+	if err != nil {
+		log.Fatalf("Got error retrieving data: %s", err)
+	}
+
+	var xRMSSlice []float32
+	var yRMSSlice []float32
+	var zRMSSlice []float32
+	var timestamps []int
+
+	for _, i := range result.Items {
+		rmsItem := RMS{}
+		err := dynamodbattribute.UnmarshalMap(i, &rmsItem)
+		if err != nil {
+			log.Fatalf("Got error unmarshalling: %s", err)
+		}
+		timestamps = append(timestamps, rmsItem.Timestamp)
+		xRMSSlice = append(xRMSSlice, float32(rmsItem.Acc_x))
+		yRMSSlice = append(yRMSSlice, float32(rmsItem.Acc_y))
+		zRMSSlice = append(zRMSSlice, float32(rmsItem.Acc_z))
+	}
+
+	return timestamps, xRMSSlice, yRMSSlice, zRMSSlice
+
 }
 
 func AddMoveDB(move Move, svc *dynamodb.DynamoDB) {

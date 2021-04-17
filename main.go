@@ -14,9 +14,6 @@ import (
 	DynamoUtil "github.com/tkeyo/tinyml-be/services"
 )
 
-// func getRMSData(c *gin.Context) {
-// }
-
 var dynamo *dynamodb.DynamoDB
 
 func connectDynamoDB() (db *dynamodb.DynamoDB) {
@@ -55,12 +52,25 @@ func getMoveData(c *gin.Context) {
 	// Movement X - [{x: time, y: 1}, {x:time, y: 1}, ...]
 	// Movement Y - [{x: time, y: 2}, {x:time, y: 2}, ...]
 	// Movement Circle - [{x: time, y: 3}, {x:time, y: 3}, ...]
-	x, y, circle, timestamps := DynamoUtil.ScanMoveDB(minTimeSet, deviceIdSet, dynamo)
+	timestamps, x, y, circle := DynamoUtil.ScanMoveDB(minTimeSet, deviceIdSet, dynamo)
 	c.JSON(200, gin.H{
 		"move_x":     x,
 		"move_y":     y,
 		"circle":     circle,
 		"timestamps": timestamps,
+	})
+}
+
+func getRMSData(c *gin.Context) {
+	minTimeSet := 1618225200 // 12.4.2021 13:00:00
+	deviceIdSet := 1
+
+	timestamps, accXRMS, accYRMS, accZRMS := DynamoUtil.ScanRMSDB(minTimeSet, deviceIdSet, dynamo)
+	c.JSON(200, gin.H{
+		"timestamp": timestamps,
+		"acc_x_rms": accXRMS,
+		"acc_y_rms": accYRMS,
+		"acc_z_rms": accZRMS,
 	})
 }
 
@@ -92,7 +102,7 @@ func main() {
 		MaxAge: 12 * time.Hour,
 	}))
 	r.GET("/api/health", healthCheck)
-	// r.GET("/api/get-rms", getRMSData)
+	r.GET("/api/get-rms", getRMSData)
 	r.GET("/api/get-move", getMoveData)
 	r.POST("/api/write-rms", endpointRMS)
 	r.POST("/api/write-move", endpointMove)
