@@ -19,12 +19,14 @@ type RMS struct {
 }
 
 type Move struct {
-	DeviceId int `json:"device_id"`
-	Time     int `json:"time"`
-	Move     int `json:"move"`
+	DeviceId  int `json:"device_id"`
+	Timestamp int `json:"time"`
+	Move      int `json:"move"`
 }
 
-func ScanMoveDB(minTime int, deviceId int, svc *dynamodb.DynamoDB) {
+type M map[string]interface{}
+
+func ScanMoveDB(minTime int, deviceId int, svc *dynamodb.DynamoDB) ([]M, []M, []M) {
 	filt := expression.Name("device_id").Equal(expression.Value(deviceId)).And(expression.Name("time").GreaterThan(expression.Value(minTime)))
 	proj := expression.NamesList(expression.Name("device_id"), expression.Name("time"), expression.Name("move"))
 
@@ -46,7 +48,31 @@ func ScanMoveDB(minTime int, deviceId int, svc *dynamodb.DynamoDB) {
 	if err != nil {
 		log.Fatalf("Got error retrieving data: %s", err)
 	}
-	fmt.Println(result)
+
+	var XMovementSlice []M
+	var YMovementSlice []M
+	var CircleMovementSlice []M
+
+	for _, i := range result.Items {
+		move := Move{}
+		err := dynamodbattribute.UnmarshalMap(i, &move)
+		if err != nil {
+			log.Fatalf("Got error unmarshalling: %s", err)
+		}
+
+		switch move.Move {
+		case 1:
+			XMovementSlice = append(XMovementSlice, M{"x": move.Timestamp, "y": 1})
+		case 2:
+			YMovementSlice = append(YMovementSlice, M{"x": move.Timestamp, "y": 2})
+		case 3:
+			CircleMovementSlice = append(CircleMovementSlice, M{"x": move.Timestamp, "y": 3})
+		}
+	}
+	// fmt.Println(XMovementSlice)
+	// fmt.Println(YMovementSlice)
+	// fmt.Println(CircleMovementSlice)
+	return XMovementSlice, YMovementSlice, CircleMovementSlice
 }
 
 func AddMoveDB(move Move, svc *dynamodb.DynamoDB) {
