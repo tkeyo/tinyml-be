@@ -28,7 +28,10 @@ type M map[string]interface{}
 
 func ScanMoveDB(minTime int, deviceId int, svc *dynamodb.DynamoDB) ([]int, []M, []M, []M) {
 	filt := expression.Name("device_id").Equal(expression.Value(deviceId)).And(expression.Name("time").GreaterThan(expression.Value(minTime)))
-	proj := expression.NamesList(expression.Name("device_id"), expression.Name("time"), expression.Name("move"))
+	proj := expression.NamesList(
+		expression.Name("device_id"),
+		expression.Name("time"),
+		expression.Name("move"))
 
 	expr, err := expression.NewBuilder().WithFilter(filt).WithProjection(proj).Build()
 
@@ -77,7 +80,12 @@ func ScanMoveDB(minTime int, deviceId int, svc *dynamodb.DynamoDB) ([]int, []M, 
 
 func ScanRMSDB(minTime int, deviceId int, svc *dynamodb.DynamoDB) ([]int, []float32, []float32, []float32) {
 	filt := expression.Name("device_id").Equal(expression.Value(deviceId)).And(expression.Name("time").GreaterThan(expression.Value(minTime)))
-	proj := expression.NamesList(expression.Name("device_id"), expression.Name("time"), expression.Name("acc_x_rms"), expression.Name("acc_y_rms"), expression.Name("acc_z_rms"))
+	proj := expression.NamesList(
+		expression.Name("device_id"),
+		expression.Name("time"),
+		expression.Name("acc_x_rms"),
+		expression.Name("acc_y_rms"),
+		expression.Name("acc_z_rms"))
 
 	expr, err := expression.NewBuilder().WithFilter(filt).WithProjection(proj).Build()
 
