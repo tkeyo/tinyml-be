@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"time"
 
@@ -12,7 +11,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 
 	dynamoUtil "github.com/tkeyo/tinyml-be/services"
 	util "github.com/tkeyo/tinyml-be/util"
@@ -127,14 +125,11 @@ func endpointMove(c *gin.Context) {
 }
 
 func main() {
+	// Run code
+	// API_AUTH_KEY=123 go run *.go
 	fmt.Println("Server is running....")
 
 	dynamo = connectDynamoDB()
-
-	err := godotenv.Load("env/.env")
-	if err != nil {
-		log.Fatalf("Error loading .env file")
-	}
 	APIAuthKey = os.Getenv("API_AUTH_KEY")
 
 	r := gin.Default()
