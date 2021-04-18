@@ -1,111 +1,139 @@
 package main
 
 import (
-	"encoding/csv"
 	"fmt"
+	"log"
 	"os"
-	"strconv"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/gin-contrib/cors"
-	MoveUtil "github.com/tkeyo/tinyml-be/move_util"
-	RMSUtil "github.com/tkeyo/tinyml-be/rms_util"
-
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
+
+	dynamoUtil "github.com/tkeyo/tinyml-be/services"
+	util "github.com/tkeyo/tinyml-be/util"
 )
 
-func getRMSData(c *gin.Context) {
-	csvFile, err := os.Open("data/dataRMS.csv")
-	if err != nil {
-		panic(err)
-	}
-	defer csvFile.Close()
+var dynamo *dynamodb.DynamoDB
+var APIAuthKey string
 
-	csvReader := csv.NewReader(csvFile)
-	csvData, err := csvReader.ReadAll()
-	if err != nil {
-		panic(err)
-	}
-
-	records := csvData[len(csvData)-10:]
-
-	time, acc_x, acc_y, acc_z := RMSUtil.GetParsedRMSData(records)
-
-	c.JSON(200, gin.H{
-		"time":      time,
-		"acc_x_rms": acc_x,
-		"acc_y_rms": acc_y,
-		"acc_z_rms": acc_z,
+func connectDynamoDB() (db *dynamodb.DynamoDB) {
+	sess, err := session.NewSession(&aws.Config{
+		Region:      aws.String("eu-central-1"),
+		Credentials: credentials.NewSharedCredentials(".aws/credentials", "default"),
 	})
-}
-
-func getMoveData(c *gin.Context) {
-	csvFile, err := os.Open("data/dataMove.csv")
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
-	defer csvFile.Close()
-
-	csvReader := csv.NewReader(csvFile)
-	csvData, err := csvReader.ReadAll()
-	if err != nil {
-		panic(err)
-	}
-
-	var day1 []int
-	var day2 []int
-	var day3 []int
-
-	for _, row := range csvData {
-		day := row[0]
-		move, _ := strconv.Atoi(row[1])
-
-		if day == "300" {
-			day1 = append(day1, move)
-		} else if day == "400" {
-			day2 = append(day2, move)
-		} else if day == "500" {
-			day3 = append(day3, move)
-		}
-	}
-
-	countsDay1 := MoveUtil.GetMoveCounts(day1)
-	countsDay2 := MoveUtil.GetMoveCounts(day2)
-	countsDay3 := MoveUtil.GetMoveCounts(day3)
-
-	c.JSON(200, gin.H{
-		"day_1": countsDay1,
-		"day_2": countsDay2,
-		"day_3": countsDay3,
-	})
+	svc := dynamodb.New(sess)
+	return svc
 }
 
 func healthCheck(c *gin.Context) {
-	c.JSON(200, gin.H{
-		"message": "Server ON",
-	})
+	requestAuthKey := c.Request.Header["Authorization"][0]
+
+	if !util.IsAuthorized(requestAuthKey, APIAuthKey) {
+		c.JSON(401, gin.H{
+			"message": "Unauthorized",
+		})
+	} else {
+		c.JSON(200, gin.H{
+			"message": "Server ON",
+		})
+	}
 }
 
 func endpointRMS(c *gin.Context) {
-	var rms RMSUtil.DataRMS
-	c.BindJSON(&rms)
-	c.JSON(200, gin.H{
-		"message": "OK",
-	})
-	RMSUtil.SaveRMSData(rms)
+	requestAuthKey := c.Request.Header["Authorization"][0]
+
+	if !util.IsAuthorized(requestAuthKey, APIAuthKey) {
+		c.JSON(401, gin.H{
+			"message": "Unauthorized",
+		})
+	} else {
+		var rms dynamoUtil.RMS
+		c.BindJSON(&rms)
+
+		dynamoUtil.AddRMSDB(rms, dynamo)
+		c.JSON(200, gin.H{
+			"message": "OK",
+		})
+	}
+}
+
+func getMoveData(c *gin.Context) {
+	requestAuthKey := c.Request.Header["Authorization"][0]
+
+	if !util.IsAuthorized(requestAuthKey, APIAuthKey) {
+		c.JSON(401, gin.H{
+			"message": "Unauthorized",
+		})
+	} else {
+		minTimeSet := 1618225200 // 12.4.2021 13:00:00
+		deviceIdSet := 1
+
+		timestamps, x, y, circle := dynamoUtil.ScanMoveDB(minTimeSet, deviceIdSet, dynamo)
+		c.JSON(200, gin.H{
+			"move_x":     x,
+			"move_y":     y,
+			"circle":     circle,
+			"timestamps": timestamps,
+		})
+	}
+}
+
+func getRMSData(c *gin.Context) {
+	requestAuthKey := c.Request.Header["Authorization"][0]
+
+	if !util.IsAuthorized(requestAuthKey, APIAuthKey) {
+		c.JSON(401, gin.H{
+			"message": "Unauthorized",
+		})
+	} else {
+		minTimeSet := 1618225200 // 12.4.2021 13:00:00
+		deviceIdSet := 1
+
+		timestamps, accXRMS, accYRMS, accZRMS := dynamoUtil.ScanRMSDB(minTimeSet, deviceIdSet, dynamo)
+		c.JSON(200, gin.H{
+			"timestamps": timestamps,
+			"acc_x_rms":  accXRMS,
+			"acc_y_rms":  accYRMS,
+			"acc_z_rms":  accZRMS,
+		})
+	}
 }
 
 func endpointMove(c *gin.Context) {
-	var move MoveUtil.DataMove
-	c.BindJSON(&move)
-	c.JSON(200, gin.H{
-		"message": "OK",
-	})
-	MoveUtil.SaveMoveData(move)
+	requestAuthKey := c.Request.Header["Authorization"][0]
+
+	if !util.IsAuthorized(requestAuthKey, APIAuthKey) {
+		c.JSON(401, gin.H{
+			"message": "Unauthorized",
+		})
+	} else {
+		var move dynamoUtil.Move
+		c.BindJSON(&move)
+
+		dynamoUtil.AddMoveDB(move, dynamo)
+		c.JSON(200, gin.H{
+			"message": "OK",
+		})
+	}
 }
 
 func main() {
 	fmt.Println("Server is running....")
+	err := godotenv.Load("env/.env")
+	if err != nil {
+		log.Fatalf("Error loading .env file")
+	}
+	APIAuthKey = os.Getenv("API_AUTH_KEY")
+
+	dynamo = connectDynamoDB()
 
 	r := gin.Default()
 	r.Use(cors.New(cors.Config{
