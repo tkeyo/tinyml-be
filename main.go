@@ -34,6 +34,7 @@ func connectDynamoDB() (db *dynamodb.DynamoDB) {
 }
 
 func healthCheck(c *gin.Context) {
+	fmt.Println("Health check request")
 	requestAuthKey := c.Request.Header["Authorization"][0]
 
 	if !util.IsAuthorized(requestAuthKey, APIAuthKey) {
@@ -127,13 +128,14 @@ func endpointMove(c *gin.Context) {
 
 func main() {
 	fmt.Println("Server is running....")
-	err := godotenv.Load("env/.env")
+
+	dynamo = connectDynamoDB()
+
+	err := godotenv.Load(".env")
 	if err != nil {
 		log.Fatalf("Error loading .env file")
 	}
 	APIAuthKey = os.Getenv("API_AUTH_KEY")
-
-	dynamo = connectDynamoDB()
 
 	r := gin.Default()
 	r.Use(cors.New(cors.Config{
