@@ -11,7 +11,8 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
-	DynamoUtil "github.com/tkeyo/tinyml-be/services"
+	dynamoUtil "github.com/tkeyo/tinyml-be/services"
+	util "github.com/tkeyo/tinyml-be/util"
 )
 
 var dynamo *dynamodb.DynamoDB
@@ -29,59 +30,95 @@ func connectDynamoDB() (db *dynamodb.DynamoDB) {
 }
 
 func healthCheck(c *gin.Context) {
-	c.JSON(200, gin.H{
-		"message": "Server ON",
-	})
+	headerAuthKey := c.Request.Header["Authorization"][0]
+
+	if !util.IsAuthorized(headerAuthKey) {
+		c.JSON(401, gin.H{
+			"message": "Unauthorized",
+		})
+	} else {
+		c.JSON(200, gin.H{
+			"message": "Server ON",
+		})
+	}
 }
 
 func endpointRMS(c *gin.Context) {
-	var rms DynamoUtil.RMS
-	c.BindJSON(&rms)
+	headerAuthKey := c.Request.Header["Authorization"][0]
 
-	DynamoUtil.AddRMSDB(rms, dynamo)
-	c.JSON(200, gin.H{
-		"message": "OK",
-	})
+	if !util.IsAuthorized(headerAuthKey) {
+		c.JSON(401, gin.H{
+			"message": "Unauthorized",
+		})
+	} else {
+		var rms dynamoUtil.RMS
+		c.BindJSON(&rms)
+
+		dynamoUtil.AddRMSDB(rms, dynamo)
+		c.JSON(200, gin.H{
+			"message": "OK",
+		})
+	}
 }
 
 func getMoveData(c *gin.Context) {
-	minTimeSet := 1618225200 // 12.4.2021 13:00:00
-	deviceIdSet := 1
+	headerAuthKey := c.Request.Header["Authorization"][0]
 
-	// Return format
-	// Movement X - [{x: time, y: 1}, {x:time, y: 1}, ...]
-	// Movement Y - [{x: time, y: 2}, {x:time, y: 2}, ...]
-	// Movement Circle - [{x: time, y: 3}, {x:time, y: 3}, ...]
-	timestamps, x, y, circle := DynamoUtil.ScanMoveDB(minTimeSet, deviceIdSet, dynamo)
-	c.JSON(200, gin.H{
-		"move_x":     x,
-		"move_y":     y,
-		"circle":     circle,
-		"timestamps": timestamps,
-	})
+	if !util.IsAuthorized(headerAuthKey) {
+		c.JSON(401, gin.H{
+			"message": "Unauthorized",
+		})
+	} else {
+		minTimeSet := 1618225200 // 12.4.2021 13:00:00
+		deviceIdSet := 1
+
+		timestamps, x, y, circle := dynamoUtil.ScanMoveDB(minTimeSet, deviceIdSet, dynamo)
+		c.JSON(200, gin.H{
+			"move_x":     x,
+			"move_y":     y,
+			"circle":     circle,
+			"timestamps": timestamps,
+		})
+	}
 }
 
 func getRMSData(c *gin.Context) {
-	minTimeSet := 1618225200 // 12.4.2021 13:00:00
-	deviceIdSet := 1
+	headerAuthKey := c.Request.Header["Authorization"][0]
 
-	timestamps, accXRMS, accYRMS, accZRMS := DynamoUtil.ScanRMSDB(minTimeSet, deviceIdSet, dynamo)
-	c.JSON(200, gin.H{
-		"timestamp": timestamps,
-		"acc_x_rms": accXRMS,
-		"acc_y_rms": accYRMS,
-		"acc_z_rms": accZRMS,
-	})
+	if !util.IsAuthorized(headerAuthKey) {
+		c.JSON(401, gin.H{
+			"message": "Unauthorized",
+		})
+	} else {
+		minTimeSet := 1618225200 // 12.4.2021 13:00:00
+		deviceIdSet := 1
+
+		timestamps, accXRMS, accYRMS, accZRMS := dynamoUtil.ScanRMSDB(minTimeSet, deviceIdSet, dynamo)
+		c.JSON(200, gin.H{
+			"timestamps": timestamps,
+			"acc_x_rms":  accXRMS,
+			"acc_y_rms":  accYRMS,
+			"acc_z_rms":  accZRMS,
+		})
+	}
 }
 
 func endpointMove(c *gin.Context) {
-	var move DynamoUtil.Move
-	c.BindJSON(&move)
+	headerAuthKey := c.Request.Header["Authorization"][0]
 
-	DynamoUtil.AddMoveDB(move, dynamo)
-	c.JSON(200, gin.H{
-		"message": "OK",
-	})
+	if !util.IsAuthorized(headerAuthKey) {
+		c.JSON(401, gin.H{
+			"message": "Unauthorized",
+		})
+	} else {
+		var move dynamoUtil.Move
+		c.BindJSON(&move)
+
+		dynamoUtil.AddMoveDB(move, dynamo)
+		c.JSON(200, gin.H{
+			"message": "OK",
+		})
+	}
 }
 
 func main() {

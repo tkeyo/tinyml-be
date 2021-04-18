@@ -109,7 +109,7 @@ func ScanRMSDB(minTime int, deviceId int, svc *dynamodb.DynamoDB) ([]int, []floa
 		if err != nil {
 			log.Fatalf("Got error unmarshalling: %s", err)
 		}
-		timestamps = append(timestamps, rmsItem.Timestamp)
+		timestamps = append(timestamps, rmsItem.Timestamp*1000)
 		xRMSSlice = append(xRMSSlice, float32(rmsItem.Acc_x))
 		yRMSSlice = append(yRMSSlice, float32(rmsItem.Acc_y))
 		zRMSSlice = append(zRMSSlice, float32(rmsItem.Acc_z))
