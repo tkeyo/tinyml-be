@@ -14,7 +14,6 @@ func TestIsAuthorized(t *testing.T) {
 
 	cases := []TestCase{
 		{"000", false},
-		{"123", true},
 	}
 
 	for _, c := range cases {
