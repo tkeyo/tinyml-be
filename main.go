@@ -131,7 +131,7 @@ func main() {
 
 	dynamo = connectDynamoDB()
 
-	err := godotenv.Load(".env")
+	err := godotenv.Load("env/.env")
 	if err != nil {
 		log.Fatalf("Error loading .env file")
 	}
