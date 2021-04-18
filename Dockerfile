@@ -10,3 +10,6 @@ ARG API_AUTH_KEY
 
 COPY --from=build /bin/demo /bin/demo
 CMD ["./bin/demo"]
+
+# Run image with
+# docker run -it -p 8081:8081 -e API_AUTH_KEY=123 -e GIN_MODE=release tinymlbe:latest
