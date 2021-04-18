@@ -8,16 +8,18 @@ import (
 
 func TestIsAuthorized(t *testing.T) {
 	type TestCase struct {
-		input    string
-		expected bool
+		requestAuthKey string
+		APIAuthKey     string
+		expected       bool
 	}
 
 	cases := []TestCase{
-		{"000", false},
+		{"000", "123", false},
+		{"123", "123", true},
 	}
 
 	for _, c := range cases {
-		actual := util.IsAuthorized(c.input)
+		actual := util.IsAuthorized(c.requestAuthKey, c.APIAuthKey)
 		expected := c.expected
 
 		if actual != expected {

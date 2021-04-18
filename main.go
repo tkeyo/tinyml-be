@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"os"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -10,12 +12,14 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 
 	dynamoUtil "github.com/tkeyo/tinyml-be/services"
 	util "github.com/tkeyo/tinyml-be/util"
 )
 
 var dynamo *dynamodb.DynamoDB
+var APIAuthKey string
 
 func connectDynamoDB() (db *dynamodb.DynamoDB) {
 	sess, err := session.NewSession(&aws.Config{
@@ -30,9 +34,9 @@ func connectDynamoDB() (db *dynamodb.DynamoDB) {
 }
 
 func healthCheck(c *gin.Context) {
-	headerAuthKey := c.Request.Header["Authorization"][0]
+	requestAuthKey := c.Request.Header["Authorization"][0]
 
-	if !util.IsAuthorized(headerAuthKey) {
+	if !util.IsAuthorized(requestAuthKey, APIAuthKey) {
 		c.JSON(401, gin.H{
 			"message": "Unauthorized",
 		})
@@ -44,9 +48,9 @@ func healthCheck(c *gin.Context) {
 }
 
 func endpointRMS(c *gin.Context) {
-	headerAuthKey := c.Request.Header["Authorization"][0]
+	requestAuthKey := c.Request.Header["Authorization"][0]
 
-	if !util.IsAuthorized(headerAuthKey) {
+	if !util.IsAuthorized(requestAuthKey, APIAuthKey) {
 		c.JSON(401, gin.H{
 			"message": "Unauthorized",
 		})
@@ -62,9 +66,9 @@ func endpointRMS(c *gin.Context) {
 }
 
 func getMoveData(c *gin.Context) {
-	headerAuthKey := c.Request.Header["Authorization"][0]
+	requestAuthKey := c.Request.Header["Authorization"][0]
 
-	if !util.IsAuthorized(headerAuthKey) {
+	if !util.IsAuthorized(requestAuthKey, APIAuthKey) {
 		c.JSON(401, gin.H{
 			"message": "Unauthorized",
 		})
@@ -83,9 +87,9 @@ func getMoveData(c *gin.Context) {
 }
 
 func getRMSData(c *gin.Context) {
-	headerAuthKey := c.Request.Header["Authorization"][0]
+	requestAuthKey := c.Request.Header["Authorization"][0]
 
-	if !util.IsAuthorized(headerAuthKey) {
+	if !util.IsAuthorized(requestAuthKey, APIAuthKey) {
 		c.JSON(401, gin.H{
 			"message": "Unauthorized",
 		})
@@ -104,9 +108,9 @@ func getRMSData(c *gin.Context) {
 }
 
 func endpointMove(c *gin.Context) {
-	headerAuthKey := c.Request.Header["Authorization"][0]
+	requestAuthKey := c.Request.Header["Authorization"][0]
 
-	if !util.IsAuthorized(headerAuthKey) {
+	if !util.IsAuthorized(requestAuthKey, APIAuthKey) {
 		c.JSON(401, gin.H{
 			"message": "Unauthorized",
 		})
@@ -123,6 +127,11 @@ func endpointMove(c *gin.Context) {
 
 func main() {
 	fmt.Println("Server is running....")
+	err := godotenv.Load("env/.env")
+	if err != nil {
+		log.Fatalf("Error loading .env file")
+	}
+	APIAuthKey = os.Getenv("API_AUTH_KEY")
 
 	dynamo = connectDynamoDB()
 

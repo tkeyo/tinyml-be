@@ -1,8 +1,8 @@
 package util
 
-func IsAuthorized(authKey string) bool {
-	if authKey != "123" {
+func IsAuthorized(requestAuthKey string, APIAuthKey string) bool {
+	if requestAuthKey != APIAuthKey {
 		return false
 	}
-	return authKey == "123"
+	return requestAuthKey == APIAuthKey
 }
