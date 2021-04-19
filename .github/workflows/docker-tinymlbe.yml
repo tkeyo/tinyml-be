@@ -7,14 +7,13 @@ on:
     branches: [ master ]
 
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
     - name: Get Secrets as env vars
+    - uses: actions/checkout@v2
       env:
         image_name: ${{ secrets.IMAGE_NAME }}
         
