@@ -16,10 +16,10 @@ jobs:
     - uses: actions/checkout@v2
     - name: Get Secrets as env vars
       env:
-        iamge_name: ${{ secrets.IMAGE_NAME }}
+        image_name: ${{ secrets.IMAGE_NAME }}
         
-    - name: Env Var Test
-      run: echo "${{env.image_name}}"
+#     - name: Env Var Test
+#       run: echo "${{env.image_name}}"
 #     - name: Build the Docker image
 #       run: docker build . --file Dockerfile --tag my-image-name:latest
       
