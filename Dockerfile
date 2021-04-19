@@ -12,4 +12,4 @@ COPY --from=build /bin/demo /bin/demo
 CMD ["./bin/demo"]
 
 # Run image with
-# docker run -it -p 8081:8081 -e API_AUTH_KEY=123 -e GIN_MODE=release tinymlbe:latest
+# docker run -it -p 8081:8081 -e API_AUTH_KEY=123 -e GIN_MODE=release -e AWS_ACCESS_KEY_ID=xyz AWS_SECRET_ACCESS_KEY=xyz tinymlbe:latest
