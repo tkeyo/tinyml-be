@@ -15,7 +15,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Env Var Test
-      run: echo ${{env.IMAGE_NAME}}
+      run: echo "${{env.IMAGE_NAME}}"
 #     - name: Build the Docker image
 #       run: docker build . --file Dockerfile --tag my-image-name:latest
       
