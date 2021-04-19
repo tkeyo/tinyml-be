@@ -3,5 +3,6 @@ data/*
 .vscode
 __debug_bin
 
-.aws/*
-env/*
+.aws
+env
+run_command.txt
