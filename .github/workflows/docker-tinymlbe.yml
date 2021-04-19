@@ -13,9 +13,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Get Secrets as env vars
+      env:
+        iamge_name: ${{ secrets.IMAGE_NAME }}
+        
     - uses: actions/checkout@v2
     - name: Env Var Test
-      run: echo "${{env.IMAGE_NAME}}"
+      run: echo "${{env.image_name}}"
 #     - name: Build the Docker image
 #       run: docker build . --file Dockerfile --tag my-image-name:latest
       
