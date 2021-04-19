@@ -14,8 +14,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:latest
+    - name: Env Var Test
+      run: echo ${{env.IMAGE_NAME}}
+#     - name: Build the Docker image
+#       run: docker build . --file Dockerfile --tag my-image-name:latest
       
-    - name: Tag Docker Image
-      run: docker tag my-image-name:latest tinymlbe:latest
+#     - name: Tag Docker Image
+#       run: docker tag my-image-name:latest tinymlbe:latest
