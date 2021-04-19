@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Get Secrets as env vars
-        run: echo "env.image_name"
+        run: echo "${{env.image_name}}"
 
         
 #     - name: Env Var Test
