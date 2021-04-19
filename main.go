@@ -20,9 +20,12 @@ var dynamo *dynamodb.DynamoDB
 var APIAuthKey string
 
 func connectDynamoDB() (db *dynamodb.DynamoDB) {
+	creds := credentials.NewEnvCredentials()
+	creds.Get()
+
 	sess, err := session.NewSession(&aws.Config{
 		Region:      aws.String("eu-central-1"),
-		Credentials: credentials.NewSharedCredentials(".aws/credentials", "default"),
+		Credentials: creds,
 	})
 	if err != nil {
 		fmt.Println(err)
@@ -126,7 +129,7 @@ func endpointMove(c *gin.Context) {
 
 func main() {
 	// Run code
-	// API_AUTH_KEY=123 go run *.go
+	// API_AUTH_KEY=123 AWS_ACCESS_KEY_ID=xyz AWS_SECRET_ACCESS_KEY=xyz GIN_MODE=release go run *.go
 	fmt.Println("Server is running....")
 
 	dynamo = connectDynamoDB()
