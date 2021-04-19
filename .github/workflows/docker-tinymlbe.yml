@@ -8,14 +8,15 @@ on:
 
 jobs:
   build:
+    env:
+      image_name: ${{ secrets.IMAGE_NAME }}
     runs-on: ubuntu-latest
-
+  
     steps:
-    - uses: actions/checkout@v2
-    - name: Get Secrets as env vars
-    - uses: actions/checkout@v2
-      env:
-        image_name: ${{ secrets.IMAGE_NAME }}
+      - uses: actions/checkout@v2
+      - name: Get Secrets as env vars
+        run: echo "env.image_name"
+
         
 #     - name: Env Var Test
 #       run: echo "${{env.image_name}}"
