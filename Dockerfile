@@ -1,14 +1,24 @@
+## STAGE 1
 FROM golang:alpine AS build
+
+RUN apk --no-cache add ca-certificates
 
 WORKDIR /app/
 COPY . /app/
 
 RUN CGO_ENABLED=0 go build -o /bin/demo
 
+## STAGE 2
 FROM scratch
-ARG API_AUTH_KEY
 
+ARG API_AUTH_KEY
+ARG AWS_ACCESS_KEY_ID
+ARG AWS_SECRET_ACCESS_KEY
+ARG GIN_MODE
+
+COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=build /bin/demo /bin/demo
+
 CMD ["./bin/demo"]
 
 # Run image with
