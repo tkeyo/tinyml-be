@@ -19,6 +19,8 @@ ARG GIN_MODE
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=build /bin/tinyml-be /bin/tinyml-be
 
+EXPOSE 8081
+
 CMD ["./bin/tinyml-be"]
 
 # Run image with
