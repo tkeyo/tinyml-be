@@ -12,7 +12,7 @@ import (
 
 type RMS struct {
 	DeviceId  int     `json:"device_id"`
-	Timestamp int     `json:"time"`
+	Timestamp int64   `json:"time"`
 	Acc_x     float64 `json:"acc_x_rms"`
 	Acc_y     float64 `json:"acc_y_rms"`
 	Acc_z     float64 `json:"acc_z_rms"`
@@ -26,7 +26,7 @@ type Move struct {
 
 type M map[string]interface{}
 
-func ScanMoveDB(minTime int, deviceId int, svc *dynamodb.DynamoDB) ([]int, []M, []M, []M) {
+func ScanMoveDB(minTime int64, deviceId int, svc *dynamodb.DynamoDB) ([]int, []M, []M, []M) {
 	filt := expression.Name("device_id").Equal(expression.Value(deviceId)).And(expression.Name("time").GreaterThan(expression.Value(minTime)))
 	proj := expression.NamesList(
 		expression.Name("device_id"),
@@ -78,7 +78,7 @@ func ScanMoveDB(minTime int, deviceId int, svc *dynamodb.DynamoDB) ([]int, []M, 
 	return timestamps, xMovementSlice, yMovementSlice, circleMovementSlice
 }
 
-func ScanRMSDB(minTime int, deviceId int, svc *dynamodb.DynamoDB) ([]int, []float32, []float32, []float32) {
+func ScanRMSDB(minTime int64, deviceId int, svc *dynamodb.DynamoDB) ([]int64, []float32, []float32, []float32) {
 	filt := expression.Name("device_id").Equal(expression.Value(deviceId)).And(expression.Name("time").GreaterThan(expression.Value(minTime)))
 	proj := expression.NamesList(
 		expression.Name("device_id"),
@@ -109,7 +109,7 @@ func ScanRMSDB(minTime int, deviceId int, svc *dynamodb.DynamoDB) ([]int, []floa
 	var xRMSSlice []float32
 	var yRMSSlice []float32
 	var zRMSSlice []float32
-	var timestamps []int
+	var timestamps []int64
 
 	for _, i := range result.Items {
 		rmsItem := RMS{}

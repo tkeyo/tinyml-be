@@ -75,7 +75,7 @@ func getMoveData(c *gin.Context) {
 			"message": "Unauthorized",
 		})
 	} else {
-		minTimeSet := 1618225200 // 12.4.2021 13:00:00
+		minTimeSet := util.GetCurrentTime() - (3600 * 1000)
 		deviceIdSet := 1
 
 		timestamps, x, y, circle := dynamoUtil.ScanMoveDB(minTimeSet, deviceIdSet, dynamo)
@@ -96,7 +96,7 @@ func getRMSData(c *gin.Context) {
 			"message": "Unauthorized",
 		})
 	} else {
-		minTimeSet := 1618225200 // 12.4.2021 13:00:00
+		minTimeSet := util.GetCurrentTime() - (3600 * 1000)
 		deviceIdSet := 1
 
 		timestamps, accXRMS, accYRMS, accZRMS := dynamoUtil.ScanRMSDB(minTimeSet, deviceIdSet, dynamo)
