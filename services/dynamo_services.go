@@ -64,15 +64,15 @@ func ScanMoveDB(minTime int64, deviceId int, svc *dynamodb.DynamoDB) ([]int, []M
 			log.Fatalf("Got error unmarshalling: %s", err)
 		}
 
-		timestamps = append(timestamps, move.Timestamp*1000)
+		timestamps = append(timestamps, move.Timestamp)
 
 		switch move.Move {
 		case 1:
-			xMovementSlice = append(xMovementSlice, M{"x": move.Timestamp * 1000, "y": 1})
+			xMovementSlice = append(xMovementSlice, M{"x": move.Timestamp, "y": 1})
 		case 2:
-			yMovementSlice = append(yMovementSlice, M{"x": move.Timestamp * 1000, "y": 2})
+			yMovementSlice = append(yMovementSlice, M{"x": move.Timestamp, "y": 2})
 		case 3:
-			circleMovementSlice = append(circleMovementSlice, M{"x": move.Timestamp * 1000, "y": 3})
+			circleMovementSlice = append(circleMovementSlice, M{"x": move.Timestamp, "y": 3})
 		}
 	}
 	return timestamps, xMovementSlice, yMovementSlice, circleMovementSlice
@@ -117,7 +117,7 @@ func ScanRMSDB(minTime int64, deviceId int, svc *dynamodb.DynamoDB) ([]int64, []
 		if err != nil {
 			log.Fatalf("Got error unmarshalling: %s", err)
 		}
-		timestamps = append(timestamps, rmsItem.Timestamp*1000)
+		timestamps = append(timestamps, rmsItem.Timestamp)
 		xRMSSlice = append(xRMSSlice, float32(rmsItem.Acc_x))
 		yRMSSlice = append(yRMSSlice, float32(rmsItem.Acc_y))
 		zRMSSlice = append(zRMSSlice, float32(rmsItem.Acc_z))
