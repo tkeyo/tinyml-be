@@ -16,9 +16,10 @@ import (
 	util "github.com/tkeyo/tinyml-be/util"
 )
 
-var dynamo *dynamodb.DynamoDB
-var APIAuthKey string
+var dynamo *dynamodb.DynamoDB // DynamoDB instance
+var APIAuthKey string         // API authentication key
 
+// Connects to DynamoDB
 func connectDynamoDB() (db *dynamodb.DynamoDB) {
 	creds := credentials.NewEnvCredentials()
 	creds.Get()
@@ -34,6 +35,7 @@ func connectDynamoDB() (db *dynamodb.DynamoDB) {
 	return svc
 }
 
+// Endpoint to check if service is up and running
 func healthCheck(c *gin.Context) {
 	fmt.Println("Health check request")
 	requestAuthKey := c.Request.Header["Authorization"][0]
@@ -49,6 +51,7 @@ func healthCheck(c *gin.Context) {
 	}
 }
 
+// Endpoint to add RMS values to DB
 func endpointRMS(c *gin.Context) {
 	requestAuthKey := c.Request.Header["Authorization"][0]
 
@@ -67,6 +70,7 @@ func endpointRMS(c *gin.Context) {
 	}
 }
 
+// Endpoint to get move data
 func getMoveData(c *gin.Context) {
 	requestAuthKey := c.Request.Header["Authorization"][0]
 
@@ -88,6 +92,7 @@ func getMoveData(c *gin.Context) {
 	}
 }
 
+// Endpoint to get RMS data
 func getRMSData(c *gin.Context) {
 	requestAuthKey := c.Request.Header["Authorization"][0]
 
@@ -109,6 +114,7 @@ func getRMSData(c *gin.Context) {
 	}
 }
 
+// Endpoint to add move data values to DB
 func endpointMove(c *gin.Context) {
 	requestAuthKey := c.Request.Header["Authorization"][0]
 
