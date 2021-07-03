@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb/expression"
 )
 
+// Root mean square (RMS) struct
 type RMS struct {
 	DeviceId  int     `json:"device_id"`
 	Timestamp int64   `json:"time"`
@@ -18,6 +19,7 @@ type RMS struct {
 	Acc_z     float64 `json:"acc_z_rms"`
 }
 
+// Move struct
 type Move struct {
 	DeviceId  int `json:"device_id"`
 	Timestamp int `json:"time"`
@@ -26,6 +28,7 @@ type Move struct {
 
 type M map[string]interface{}
 
+// Returns `move` values from DynamoDB
 func ScanMoveDB(minTime int64, deviceId int, svc *dynamodb.DynamoDB) ([]int, []M, []M, []M) {
 	filt := expression.Name("device_id").Equal(expression.Value(deviceId)).And(expression.Name("time").GreaterThan(expression.Value(minTime)))
 	proj := expression.NamesList(
@@ -78,6 +81,7 @@ func ScanMoveDB(minTime int64, deviceId int, svc *dynamodb.DynamoDB) ([]int, []M
 	return timestamps, xMovementSlice, yMovementSlice, circleMovementSlice
 }
 
+// Returns `RMS` values from DynamoDB
 func ScanRMSDB(minTime int64, deviceId int, svc *dynamodb.DynamoDB) ([]int64, []float32, []float32, []float32) {
 	filt := expression.Name("device_id").Equal(expression.Value(deviceId)).And(expression.Name("time").GreaterThan(expression.Value(minTime)))
 	proj := expression.NamesList(
@@ -127,6 +131,7 @@ func ScanRMSDB(minTime int64, deviceId int, svc *dynamodb.DynamoDB) ([]int64, []
 
 }
 
+// Adds move value to DynamoDB table
 func AddMoveDB(move Move, svc *dynamodb.DynamoDB) {
 	av, err := dynamodbattribute.MarshalMap(move)
 	input := &dynamodb.PutItemInput{
@@ -143,6 +148,7 @@ func AddMoveDB(move Move, svc *dynamodb.DynamoDB) {
 	}
 }
 
+// Adds RMS values to DynamoDB table
 func AddRMSDB(rms RMS, svc *dynamodb.DynamoDB) {
 	av, err := dynamodbattribute.MarshalMap(rms)
 	input := &dynamodb.PutItemInput{

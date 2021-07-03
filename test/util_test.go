@@ -6,6 +6,7 @@ import (
 	"github.com/tkeyo/tinyml-be/util"
 )
 
+// Test authorization
 func TestIsAuthorized(t *testing.T) {
 	type TestCase struct {
 		requestAuthKey string

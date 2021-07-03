@@ -17,7 +17,7 @@ import (
 )
 
 var dynamo *dynamodb.DynamoDB // DynamoDB instance
-var APIAuthKey string         // API authentication key
+var APIAuthKey string         // API auth key
 
 // Connects to DynamoDB
 func connectDynamoDB() (db *dynamodb.DynamoDB) {
