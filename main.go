@@ -60,9 +60,9 @@ func endpointRMS(c *gin.Context) {
 		var rms dynamoUtil.RMS
 		c.BindJSON(&rms)
 
-		dynamoUtil.AddRMSDB(rms, dynamo)
-		c.JSON(200, gin.H{
-			"message": "OK",
+		go dynamoUtil.AddRMSDB(rms, dynamo)
+		c.JSON(202, gin.H{
+			"message": "Accepted",
 		})
 	}
 }
@@ -120,9 +120,9 @@ func endpointMove(c *gin.Context) {
 		var move dynamoUtil.Move
 		c.BindJSON(&move)
 
-		dynamoUtil.AddMoveDB(move, dynamo)
-		c.JSON(200, gin.H{
-			"message": "OK",
+		go dynamoUtil.AddMoveDB(move, dynamo)
+		c.JSON(202, gin.H{
+			"message": "Accepted",
 		})
 	}
 }
