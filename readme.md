@@ -2,7 +2,7 @@
 
 RestAPI for the TinyML projects. Implemented with Go using GinGonic. Uses AWS DynamoDB as backend.
 
-Roles:
+**Roles:**
 1. Saves data comming from an ESP32 IoT device that captures acceleration & gyro data, and identified gestures.
 2. Retrieves data from the DB to show on the frontend. 
 
