@@ -2,6 +2,8 @@
 
 RestAPI for the TinyML projects. Implemented with Go using GinGonic. Uses AWS DynamoDB as backend.
 
+Blog: [TinyML: Machine Learning on ESP32 with MicroPython](https://dev.to/tkeyo/tinyml-machine-learning-on-esp32-with-micropython-38a6)
+
 **Roles:**
 1. Saves data comming from an ESP32 IoT device that captures acceleration & gyro data, and identified gestures.
 2. Retrieves data from the DB to show on the frontend. 
